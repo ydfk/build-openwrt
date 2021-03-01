@@ -296,26 +296,48 @@ jobs:
         name: OpenWrt-${{ env.NAME2 }}${{ env.NAME1 }}-firmware-${{ env.date }}
         path: ${{ env.FIRMWARE }}
 
-    - name: 上传固件到「奶牛快传」和「WeTransfer」
-      if: steps.organizer.outputs.status == 'success' && env.UPLOAD_COWTRANSFER == 'true' && !cancelled()
-      run: |
-        curl -fsSL git.io/file-transfer | sh
-        ./transfer cow --block 2621440 -s -p 64 --no-progress ${FIRMWARE} 2>&1 | tee cowtransfer.log
-        echo "::warning file=奶牛快传（${{matrix.target}}）::$(cat cowtransfer.log | grep https)"
-        curl -fsSL git.io/file-transfer | sh
-        ./transfer wet -s -p 16 --no-progress ${FIRMWARE} 2>&1 | tee wetransfer.log
-        echo "::warning file=WeTransfer（${{matrix.target}}）::$(cat wetransfer.log | grep https)"
+    # - name: 上传固件到「奶牛快传」和「WeTransfer」
+    #   if: steps.organizer.outputs.status == 'success' && env.UPLOAD_COWTRANSFER == 'true' && !cancelled()
+    #   run: |
+    #     curl -fsSL git.io/file-transfer | sh
+    #     ./transfer cow --block 2621440 -s -p 64 --no-progress ${FIRMWARE} 2>&1 | tee cowtransfer.log
+    #     echo "::warning file=奶牛快传（${{matrix.target}}）::$(cat cowtransfer.log | grep https)"
+    #     curl -fsSL git.io/file-transfer | sh
+    #     ./transfer wet -s -p 16 --no-progress ${FIRMWARE} 2>&1 | tee wetransfer.log
+    #     echo "::warning file=WeTransfer（${{matrix.target}}）::$(cat wetransfer.log | grep https)"
     
-    - name: 提取发布用的「奶牛快传」跟「WeTransfer」的链接
-      if: steps.organizer.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' || (github.event.inputs.release == 'release' && github.event.inputs.release  != 'false')
-      run: |
-        curl -fsSL git.io/file-transfer | sh
-        ./transfer cow --block 2621440 -s -p 64 --no-progress ${FIRMWARE} 2>&1 | tee cowtransfer.log
-        echo "COWTRANSFER_URL=$(cat cowtransfer.log | grep https | cut -f3 -d" ")" >> $GITHUB_ENV
-        curl -fsSL git.io/file-transfer | sh
-        ./transfer wet -s -p 16 --no-progress ${FIRMWARE} 2>&1 | tee wetransfer.log
-        echo "WETRANSFER_URL=$(cat wetransfer.log | grep https | cut -f3 -d" ")" >> $GITHUB_ENV
+    # - name: 提取发布用的「奶牛快传」跟「WeTransfer」的链接
+    #   if: steps.organizer.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' || (github.event.inputs.release == 'release' && github.event.inputs.release  != 'false')
+    #   run: |
+    #     curl -fsSL git.io/file-transfer | sh
+    #     ./transfer cow --block 2621440 -s -p 64 --no-progress ${FIRMWARE} 2>&1 | tee cowtransfer.log
+    #     echo "COWTRANSFER_URL=$(cat cowtransfer.log | grep https | cut -f3 -d" ")" >> $GITHUB_ENV
+    #     curl -fsSL git.io/file-transfer | sh
+    #     ./transfer wet -s -p 16 --no-progress ${FIRMWARE} 2>&1 | tee wetransfer.log
+    #     echo "WETRANSFER_URL=$(cat wetransfer.log | grep https | cut -f3 -d" ")" >> $GITHUB_ENV
     
+    # - name: 自动发布固件
+    #   uses: softprops/action-gh-release@v1
+    #   if: steps.organizer.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' || (github.event.inputs.release == 'release' && github.event.inputs.release  != 'false')
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+    #   with:
+    #     name: ${{ env.date1 }} 「 ${{ env.WXFB_MESSAGE }} 」固件
+    #     tag_name: ${{ env.date2 }}
+    #     body: |
+    #         ☆  源码 : ${{ env.REPO_URL }}
+    #         ☆  分支 : ${{ env.REPO_BRANCH }}
+    #         ☆  感谢源码作者[ ${{ env.ZUOZHE }}大神 ]无私分享！
+            
+    #         🎉 [ ${{ env.NAME2 }}${{ env.NAME1 }} ]固件下载 ✨
+    #         -
+    #         💐 奶牛快传(国内高速🚀下载)： ${{ env.COWTRANSFER_URL }}
+            
+    #         ⛄ WeTransfer(国外高速🚀下载)： ${{ env.WETRANSFER_URL }}
+            
+    #         🌴 链接有效期为7天，无需注册直接下载 🐤
+    #     files: ${{ env.FIRMWARE }}/*
+
     - name: 自动发布固件
       uses: softprops/action-gh-release@v1
       if: steps.organizer.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' || (github.event.inputs.release == 'release' && github.event.inputs.release  != 'false')
@@ -328,14 +350,6 @@ jobs:
             ☆  源码 : ${{ env.REPO_URL }}
             ☆  分支 : ${{ env.REPO_BRANCH }}
             ☆  感谢源码作者[ ${{ env.ZUOZHE }}大神 ]无私分享！
-            
-            🎉 [ ${{ env.NAME2 }}${{ env.NAME1 }} ]固件下载 ✨
-            -
-            💐 奶牛快传(国内高速🚀下载)： ${{ env.COWTRANSFER_URL }}
-            
-            ⛄ WeTransfer(国外高速🚀下载)： ${{ env.WETRANSFER_URL }}
-            
-            🌴 链接有效期为7天，无需注册直接下载 🐤
         files: ${{ env.FIRMWARE }}/*
     
     - name: 发布定时升级云端地址
