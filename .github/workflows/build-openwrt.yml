@@ -23,8 +23,8 @@ on:
         default: 'release-actions'
 
 #定时触发开始编译(把下面两个#去掉开启,时间设置请看定时编译说明)
-#  schedule:
-#    - cron: 0 8 */5 * *
+  schedule:
+    - cron: 0 18 ? ? 7
 
 env: 
   REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
@@ -90,6 +90,10 @@ jobs:
         text: 主人"${{ env.WXFB_MESSAGE }}"编译开始啦
         desp: 主人您要编译的["${{ env.WXFB_MESSAGE }}"]固件正在努力耕耘中,请耐心等待......
     
+    - name: 电报机器人信息通知
+      run: |
+        curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=🎉 主人您要编译的[${{ env.WXFB_MESSAGE }}]固件正在努力耕耘中,请耐心等待...... 😋" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
+       
     - name: 开始安装编译所需系统
       env:
         DEBIAN_FRONTEND: noninteractive
@@ -343,11 +347,7 @@ jobs:
         tag_name: update_Firmware
         body: ${{ env.log1 }}-${{ env.log2 }}-${{ env.log3 }}（完成时间-${{ env.date }}）
         files: openwrt/bin/Firmware/*
-    
-    - name: 电报机器人信息通知
-      run: |
-        curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=🎉 主人您要编译的[${{ env.WXFB_MESSAGE }}]固件正在努力耕耘中,请耐心等待...... 😋" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
-        
+     
     - name: 电报机器人信息通知
       run: |
         curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=我亲爱的✨主人✨您要编译的[${{ env.WXFB_MESSAGE }}]固件顺利编译完成了！
