@@ -71,6 +71,7 @@ jobs:
           echo "REGULAR_UPDATE=${REGULAR_UPDATE}" >> $GITHUB_ENV
           echo "Updete_firmware=${Updete_firmware}" >> $GITHUB_ENV
           echo "Extension=${Extension}" >> $GITHUB_ENV
+          echo "GITHUB_RELEASE=$(grep "https://github.com/[a-zA-Z0-9]" ${GITHUB_WORKSPACE}/.git/config | cut -c8-100)" >> $GITHUB_ENV
 
       - name: 微信通知
         uses: emon100/Action-Serverchan@v2
@@ -202,6 +203,7 @@ jobs:
           make -j$(($(nproc)+1)) || make -j1 V=s
           echo "::set-output name=status::success"
           echo "date=$(date "+%y.%m.%d-%H%M")" >> $GITHUB_ENV
+          echo "date1=$(date "+%Y年%m月%d号-%H点%M分")" >> $GITHUB_ENV
           echo "date2=$(date "+%Y%m%d%H%M%S")" >> $GITHUB_ENV
           DEVICE="$(awk -F '[="]+' '/TARGET_BOARD/{print $2}' .config)"
           SUBTARGET="$(awk -F '[="]+' '/TARGET_SUBTARGET/{print $2}' .config)"
@@ -246,12 +248,14 @@ jobs:
             source "${PATH1}/upgrade.sh" && Diy_Part3
           fi
           mkdir bin/config
-          find bin/targets/ -name "*config.buildinfo*" | xargs -i mv -f {} bin/config
+          find bin/targets/ -name "*config.buildinfo*" | xargs -i mv -f {} bin/targets/config
           if [ -n "$(ls -A "bin/targets/x86" 2>/dev/null)" ]; then
             find bin/targets/x86/* -name "*kernel*" | xargs -i mv -f {} bin/targets
           fi
           cd bin/targets/*/*
           rm -rf packages && mkdir packages
+          find -name "*feeds.buildinfo*" | xargs -i mv -f {} packages
+          find -name "*version.buildinfo*" | xargs -i mv -f {} packages
           find -name "*sha256sums*" | xargs -i mv -f {} packages
           find -name "*manifest*" | xargs -i mv -f {} packages
           find -name "*vmlinuz*" | xargs -i mv -f {} packages
@@ -267,7 +271,7 @@ jobs:
         if: steps.organizer.outputs.status == 'success' && env.UPLOAD_CONFIG == 'true'
         with:
           name: .config_${{ env.NAME2 }}_${{ env.NAME1 }}_${{ env.date }}
-          path: openwrt/bin/config
+          path: openwrt/bin/targets/config
 
       - name: 上传固件在github actions
         uses: actions/upload-artifact@v2
@@ -309,18 +313,22 @@ jobs:
         if: steps.organizer.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true'
         run: |
           echo "☆  发布于$(date +"%Y年%m月%d号-%H点%M分")" > update_log.txt
-          echo "☆  源码 : ${{ env.REPO_URL }}" > update_log.txt
-          echo "☆  分支 : ${{ env.REPO_BRANCH }}" > update_log.txt
-          echo "☆  感谢源码作者[ ${{ env.ZUOZHE }}大神 ]无私分享！" > update_log.txt
+          echo "☆  源码 : ${{ env.REPO_URL }}" >> update_log.txt
+          echo "☆  分支 : ${{ env.REPO_BRANCH }}" >> update_log.txt
+          echo "☆  感谢源码作者[ ${{ env.ZUOZHE }}大神 ]无私分享！" >> update_log.txt
 
       - name: 发布固件
         uses: ncipollo/release-action@v1
         if: steps.organizer.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true'
         with:
-          name: ${{ env.NAME2 }}-${{ env.NAME1 }}
+          name: ${{ env.date1 }} 「 ${{ env.NAME2 }}-${{ env.NAME1 }} 」固件
           tag: ${{ env.date2 }}
           token: ${{ secrets.REPO_TOKEN }}
-          bodyFile: "update_log.txt"
+          body: |
+            ☆  发布于${{env.date1}}
+            ☆  源码 : ${{ env.REPO_URL }}
+            ☆  分支 : ${{ env.REPO_BRANCH }}
+            ☆  感谢源码作者[ ${{ env.ZUOZHE }}大神 ]无私分享！"
           artifacts: "${{ env.FIRMWARE }}/*"
 
       - name: 电报机器人信息通知
@@ -330,10 +338,6 @@ jobs:
             完成时间：${{ env.date1 }}
 
             发布地址：${{ env.GITHUB_RELEASE }}/releases
-
-            奶牛快传：${{ env.COWTRANSFER_URL }}
-
-            WeTransfer：${{ env.WETRANSFER_URL }}
 
             祝小主人见人爱，💐花见花开，车见车载，天天好心情🎈！！！" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
 
