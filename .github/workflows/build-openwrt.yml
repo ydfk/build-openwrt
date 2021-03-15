@@ -142,10 +142,6 @@ jobs:
           /bin/bash "${PATH1}/$DIY_P1_SH"
           ./scripts/feeds clean
           ./scripts/feeds update -a && ./scripts/feeds install -a
-          cp -Rf "${PATH1}/files" ./
-          chmod -R +x ${Home}/files
-          cp -Rf "${PATH1}/diy"/* ./
-          source "${PATH1}/common.sh" && Diy_all2
           if [[ "${REPO_URL}" == "${LEDE}" ]]; then
             source "${PATH1}/common.sh" && Diy_lede2
             echo "NAME2=Lede" >> $GITHUB_ENV
@@ -159,8 +155,17 @@ jobs:
             echo "NAME2=Project" >> $GITHUB_ENV
             echo "ZUOZHE=ctcgfw" >> $GITHUB_ENV
           fi
+          source "${PATH1}/common.sh" && Diy_all2
+          if [ -n "$(ls -A "${PATH1}/files" 2>/dev/null)" ]; then
+            cp -Rf "${PATH1}/files" "${Home}" && chmod -R +x ${Home}/files
+          fi
+          if [ -n "$(ls -A "${PATH1}/diy" 2>/dev/null)" ]; then
+            cp -Rf "${PATH1}"/diy/* "${Home}"
+          fi
+          if [ -n "$(ls -A "${PATH1}/patches" 2>/dev/null)" ]; then
+            find "${PATH1}/patches" -type f -name '*.patch' -print0 | sort -z | xargs -I % -t -0 -n 1 sh -c "cat '%'  | patch -d './' -p1 --forward --no-backup-if-mismatch"
+          fi
           /bin/bash "${PATH1}/$DIY_P2_SH"
-          find "${PATH1}/patches" -type f -name '*.patch' -print0 | sort -z | xargs -I % -t -0 -n 1 sh -c "cat '%'  | patch -d './' -p1 --forward --no-backup-if-mismatch"
           ./scripts/feeds install -a
           [ -e "$PATH1/$CONFIG_FILE" ] && mv "$PATH1/$CONFIG_FILE" .config
           if [[ "${REGULAR_UPDATE}" == "true" ]]; then
@@ -178,6 +183,8 @@ jobs:
       - name: 准备就绪
         run: |
           cd openwrt
+          source "${PATH1}/common.sh" && Diy_chajian
+          make defconfig
           source "${PATH1}/common.sh" && Diy_adgu
           if [ "${REGULAR_UPDATE}" == "true" ]; then
             source "${PATH1}/upgrade.sh" && Diy_Part2
