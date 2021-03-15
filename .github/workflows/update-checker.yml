@@ -45,7 +45,7 @@ jobs:
 
       - name: Trigger build
         run: |
-          curl -X POST "https://api.github.com/repos/ydfk/build-openwrt/dispatches" -H "Accept: application/vnd.github.everest-preview+json" -H "Authorization: ${{secrets.ACTIONS_TRIGGER_PAT}}" --data '{"event_type": "Source Code Update"}'
+          curl -X POST "https://api.github.com/repos/ydfk/build-openwrt/dispatches" -H "Accept: application/vnd.github.everest-preview+json" -H "Authorization: ${{secrets.REPO_TOKEN}}" --data '{"event_type": "Source Code Update"}'
 
       # - name: Trigger build
       #   if: steps.cacheHash.outputs.cache-hit != 'true'
