@@ -1,4 +1,11 @@
 #!/bin/bash
+###
+ # @Description: Copyright (c) ydfk. All rights reserved
+ # @Author: ydfk
+ # @Date: 2021-03-01 17:05:02
+ # @LastEditors: ydfk
+ # @LastEditTime: 2021-03-23 14:59:44
+### 
 # Copyright (c) 2019-2020 P3TERX <https://p3terx.com>
 #
 # 基本不需要添加啥插件了,我搜集了各位大神的插件都集成一个软件包直接打入源码里面了
@@ -11,3 +18,4 @@
 # git clone https://github.com/jerrykuku/luci-app-vssr.git  package/luci-app-vssr
 # git clone https://github.com/jerrykuku/luci-app-argon-config.git package/luci-app-argon-config
 # git clone https://github.com/BCYDTZ/luci-app-UUGameAcc.git package/luci-app-UUGameAcc
+git clone https://github.com/sirpdboy/NetSpeedTest package/NetSpeedTest
