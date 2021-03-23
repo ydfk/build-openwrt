@@ -163,15 +163,15 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
 
-      # - name: 准备就绪
-      #   run: |
-      #     cd openwrt
-      #     source "${PATH1}/common.sh" && Diy_chajian
-      #     make defconfig
-      #     source "${PATH1}/common.sh" && Diy_adgu
-      #     if [ "${REGULAR_UPDATE}" == "true" ]; then
-      #       source "${PATH1}/upgrade.sh" && Diy_Part2
-      #     fi
+      - name: 准备就绪
+        run: |
+          cd openwrt
+          source "${PATH1}/common.sh" && Diy_chajian
+          make defconfig
+          source "${PATH1}/common.sh" && Diy_adgu
+          if [ "${REGULAR_UPDATE}" == "true" ]; then
+            source "${PATH1}/upgrade.sh" && Diy_Part2
+          fi
 
       - name: 编译信息
         run: |
