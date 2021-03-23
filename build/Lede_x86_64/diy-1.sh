@@ -18,4 +18,4 @@
 # git clone https://github.com/jerrykuku/luci-app-vssr.git  package/luci-app-vssr
 # git clone https://github.com/jerrykuku/luci-app-argon-config.git package/luci-app-argon-config
 # git clone https://github.com/BCYDTZ/luci-app-UUGameAcc.git package/luci-app-UUGameAcc
-git clone https://github.com/sirpdboy/NetSpeedTest package/NetSpeedTest
+# git clone https://github.com/sirpdboy/NetSpeedTest package/NetSpeedTest
