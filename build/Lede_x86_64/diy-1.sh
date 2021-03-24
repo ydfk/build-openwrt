@@ -4,7 +4,7 @@
  # @Author: ydfk
  # @Date: 2021-03-01 17:05:02
  # @LastEditors: ydfk
- # @LastEditTime: 2021-03-23 14:59:44
+ # @LastEditTime: 2021-03-24 10:10:17
 ### 
 # Copyright (c) 2019-2020 P3TERX <https://p3terx.com>
 #
@@ -18,4 +18,4 @@
 # git clone https://github.com/jerrykuku/luci-app-vssr.git  package/luci-app-vssr
 # git clone https://github.com/jerrykuku/luci-app-argon-config.git package/luci-app-argon-config
 # git clone https://github.com/BCYDTZ/luci-app-UUGameAcc.git package/luci-app-UUGameAcc
-# git clone https://github.com/sirpdboy/NetSpeedTest package/NetSpeedTest
+git clone https://github.com/sirpdboy/NetSpeedTest package/NetSpeedTest
