@@ -165,6 +165,6 @@ Mkdir() {
 	unset _DIR
 }
 
-# Diy_xinxi() {
-# 	Diy_xinxi_Base
-# }
+Diy_xinxi() {
+	Diy_xinxi_Base
+}
