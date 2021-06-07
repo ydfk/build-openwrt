@@ -54,6 +54,7 @@ rm -rf package/danshui/luci-app-vssr
 rm -rf package/danshui/luci-app-openclash
 rm -rf package/danshui/luci-app-clash
 
+git clone https://github.com/kenzok8/small package/danshui/small
 git clone https://github.com/jerrykuku/luci-theme-argon package/danshui/luci-theme-argon
 git clone https://github.com/fw876/helloworld package/danshui/luci-app-ssr-plus
 git clone https://github.com/xiaorouji/openwrt-passwall package/danshui/luci-app-passwall
