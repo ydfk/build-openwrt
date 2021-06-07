@@ -1,1 +1,3 @@
-# Fork form https://github.com/281677160/build-openwrt
+# https://github.com/danshui-git/shuoming
+
+cd openwrt && make menuconfig
