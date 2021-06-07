@@ -55,7 +55,7 @@ rm -rf package/danshui/luci-app-vssr
 rm -rf package/danshui/luci-app-openclash
 rm -rf package/danshui/luci-app-clash
 
-mv package/danshui/small package/danshui
+mv -f package/danshui/small/* package/danshui
 
 git clone https://github.com/jerrykuku/luci-theme-argon package/danshui/luci-theme-argon
 git clone https://github.com/fw876/helloworld package/danshui/luci-app-ssr-plus
