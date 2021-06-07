@@ -48,12 +48,12 @@ sed -i '/IMAGES_GZIP/d' "${PATH1}/${CONFIG_FILE}" > /dev/null 2>&1
 echo -e "\nCONFIG_TARGET_IMAGES_GZIP=y" >> "${PATH1}/${CONFIG_FILE}"
 fi
 
-git clone https://github.com/fw876/helloworld package/danshui/luci-app-ssr-plus
-git clone https://github.com/xiaorouji/openwrt-passwall package/danshui/luci-app-passwall
-git clone https://github.com/jerrykuku/luci-app-vssr package/danshui/luci-app-vssr
-git clone https://github.com/vernesong/OpenClash package/danshui/luci-app-openclash
-git clone https://github.com/frainzy1477/luci-app-clash package/danshui/luci-app-clash
-git clone https://github.com/garypang13/luci-app-bypass package/danshui/luci-app-bypass
+# git clone https://github.com/fw876/helloworld package/danshui/luci-app-ssr-plus
+# git clone https://github.com/xiaorouji/openwrt-passwall package/danshui/luci-app-passwall
+# git clone https://github.com/jerrykuku/luci-app-vssr package/danshui/luci-app-vssr
+# git clone https://github.com/vernesong/OpenClash package/danshui/luci-app-openclash
+# git clone https://github.com/frainzy1477/luci-app-clash package/danshui/luci-app-clash
+# git clone https://github.com/garypang13/luci-app-bypass package/danshui/luci-app-bypass
 find package/*/ feeds/*/ -maxdepth 2 -path "*luci-app-bypass/Makefile" | xargs -i sed -i 's/shadowsocksr-libev-ssr-redir/shadowsocksr-libev-alt/g' {}
 find package/*/ feeds/*/ -maxdepth 2 -path "*luci-app-bypass/Makefile" | xargs -i sed -i 's/shadowsocksr-libev-ssr-server/shadowsocksr-libev-server/g' {}
 }
