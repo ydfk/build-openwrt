@@ -86,11 +86,7 @@ jobs:
             echo "CODE=Spirit" >> $GITHUB_ENV
             echo "OpenWrt_name=21.02" >> $GITHUB_ENV
           fi
-          if [ -n "$(ls -A build/common/0602gg 2>/dev/null)" ]; then
-            source build/common/common.sh && Diy_gonggao
-          else
-            source build/common/common.sh && Diy_tongzhi
-          fi
+          source build/common/common.sh && Diy_gonggao
 
       - name: 电报机器人信息通知
         run: |
