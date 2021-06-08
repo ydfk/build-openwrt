@@ -51,8 +51,7 @@ jobs:
           echo "REPO_URL=${REPO_URL}" >> $GITHUB_ENV
           echo "REPO_BRANCH=${REPO_BRANCH}" >> $GITHUB_ENV
           echo "CONFIG_FILE=${CONFIG_FILE}" >> $GITHUB_ENV
-          echo "DIY_P1_SH=${DIY_P1_SH}" >> $GITHUB_ENV
-          echo "DIY_P2_SH=${DIY_P2_SH}" >> $GITHUB_ENV
+          echo "DIY_PART_SH=${DIY_PART_SH}" >> $GITHUB_ENV
           echo "SSH_ACTIONS=${SSH_ACTIONS}" >> $GITHUB_ENV
           echo "UPLOAD_BIN_DIR=${UPLOAD_BIN_DIR}" >> $GITHUB_ENV
           echo "UPLOAD_CONFIG=${UPLOAD_CONFIG}" >> $GITHUB_ENV
@@ -61,9 +60,37 @@ jobs:
           echo "UPLOAD_RELEASE=${UPLOAD_RELEASE}" >> $GITHUB_ENV
           echo "SERVERCHAN_SCKEY=${SERVERCHAN_SCKEY}" >> $GITHUB_ENV
           echo "REGULAR_UPDATE=${REGULAR_UPDATE}" >> $GITHUB_ENV
+          echo "CangKu=${Apidz##*/}" >> $GITHUB_ENV
           echo "Updete_firmware=${Updete_firmware}" >> $GITHUB_ENV
           echo "Extension=${Extension}" >> $GITHUB_ENV
           echo "GITHUB_RELEASE=$(grep "https://github.com/[a-zA-Z0-9]" ${GITHUB_WORKSPACE}/.git/config | cut -c8-100)" >> $GITHUB_ENV
+
+      - name: 公 告
+        run: |
+          echo
+          chmod -R +x "${GITHUB_WORKSPACE}/build/common"
+          if [[ "${REPO_BRANCH}" == "master" ]]; then
+            echo "ZZZ=package/lean/default-settings/files/zzz-default-settings" >> $GITHUB_ENV
+            echo "CODE=Lede" >> $GITHUB_ENV
+            echo "OpenWrt_name=18.06" >> $GITHUB_ENV
+          elif [[ "${REPO_BRANCH}" == "19.07" ]]; then
+            echo "ZZZ=package/default-settings/files/zzz-default-settings" >> $GITHUB_ENV
+            echo "CODE=Lienol" >> $GITHUB_ENV
+            echo "OpenWrt_name=19.07" >> $GITHUB_ENV
+          elif [[ "${REPO_BRANCH}" == "openwrt-18.06" ]]; then
+            echo "ZZZ=package/emortal/default-settings/files/zzz-default-settings" >> $GITHUB_ENV
+            echo "CODE=Project" >> $GITHUB_ENV
+            echo "OpenWrt_name=18.06" >> $GITHUB_ENV
+          elif [[ "${REPO_BRANCH}" == "openwrt-21.02" ]]; then
+            echo "ZZZ=package/emortal/default-settings/files/zzz-default-settings" >> $GITHUB_ENV
+            echo "CODE=Spirit" >> $GITHUB_ENV
+            echo "OpenWrt_name=21.02" >> $GITHUB_ENV
+          fi
+          if [ -n "$(ls -A build/common/0602gg 2>/dev/null)" ]; then
+            source build/common/common.sh && Diy_gonggao
+          else
+            source build/common/common.sh && Diy_tongzhi
+          fi
 
       - name: 电报机器人信息通知
         run: |
@@ -282,9 +309,7 @@ jobs:
       - name: 电报机器人信息通知
         run: |
           curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=我亲爱的✨主人✨您要编译的[ ${{ env.NAME2 }}-${{ env.NAME1 }} ]固件顺利编译完成了！
-
             完成时间：${{ env.date1 }}
-
             发布地址：${{ env.GITHUB_RELEASE }}/releases
-
+            固件: ${{ env.CangKu }}仓库的#${{ env.Run_number }}号
             祝小主人见人爱，💐花见花开，车见车载，天天好心情🎈！！！" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
