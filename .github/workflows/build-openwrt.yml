@@ -131,18 +131,26 @@ jobs:
             source "${PATH1}/common.sh" && Diy_lede
             cp -Rf "${Home}"/build/common/LEDE/files "${Home}"
             cp -Rf "${Home}"/build/common/LEDE/diy/* "${Home}"
+            echo "NAME2=Lede" >> $GITHUB_ENV
+            echo "ZUOZHE=Lean's" >> $GITHUB_ENV
           elif [[ "${REPO_BRANCH}" == "19.07" ]]; then
             source "${PATH1}/common.sh" && Diy_lienol
             cp -Rf "${Home}"/build/common/LIENOL/files "${Home}"
             cp -Rf "${Home}"/build/common/LIENOL/diy/* "${Home}"
+            echo "NAME2=Lienol" >> $GITHUB_ENV
+            echo "ZUOZHE=lienol's" >> $GITHUB_ENV
           elif [[ "${REPO_BRANCH}" == "openwrt-18.06" ]]; then
             source "${PATH1}/common.sh" && Diy_1806
             cp -Rf "${Home}"/build/common/PROJECT/files "${Home}"
             cp -Rf "${Home}"/build/common/PROJECT/diy/* "${Home}"
+            echo "NAME2=Lienol" >> $GITHUB_ENV
+            echo "ZUOZHE=Immortalwrt18.06" >> $GITHUB_ENV
           elif [[ "${REPO_BRANCH}" == "openwrt-21.02" ]]; then
             source "${PATH1}/common.sh" && Diy_2102
             cp -Rf "${Home}"/build/common/SPIRIT/files "${Home}"
             cp -Rf "${Home}"/build/common/SPIRIT/diy/* "${Home}"
+            echo "NAME2=Immortalwrt21.02" >> $GITHUB_ENV
+            echo "ZUOZHE=immortalwrt's" >> $GITHUB_ENV
           fi
           source "${PATH1}/common.sh" && Diy_all
           /bin/bash "${PATH1}/$DIY_PART_SH"
