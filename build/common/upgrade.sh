@@ -136,22 +136,31 @@ Diy_Part3() {
 	case "${TARGET_PROFILE}" in
 	x86-64)
 		cd ${Firmware_Path}
+		mkdir -p {Legacy,UEFI}
 		Legacy_Firmware="${Up_Firmware}"
 		EFI_Firmware="${EFI_Up_Firmware}"
 		AutoBuild_Firmware="${COMP1}-${Openwrt_Version}"
 		if [ -f "${Legacy_Firmware}" ];then
 			_MD5=$(md5sum ${Legacy_Firmware} | cut -d ' ' -f1)
 			_SHA256=$(sha256sum ${Legacy_Firmware} | cut -d ' ' -f1)
-			touch ${Home}/bin/Firmware/${AutoBuild_Firmware}.detail
-			echo -e "\nMD5:${_MD5}\nSHA256:${_SHA256}" > ${Home}/bin/Firmware/${AutoBuild_Firmware}-Legacy.detail
-			cp ${Legacy_Firmware} ${Home}/bin/Firmware/${AutoBuild_Firmware}-Legacy.${Firmware_sfx}
+			touch ./Legacy/${AutoBuild_Firmware}.detail
+			echo -e "\nMD5:${_MD5}\nSHA256:${_SHA256}" > ./Legacy/${AutoBuild_Firmware}-Legacy.detail
+			cp ${Legacy_Firmware} ./Legacy/${AutoBuild_Firmware}-Legacy.${Firmware_sfx}
+			find ./Legacy -name "*" -type f -size 0c | xargs -n 1 rm -f
+			tar -zcf ${AutoBuild_Firmware}-Legacy.tar.gz ./Legacy
+			mv ${AutoBuild_Firmware}-Legacy.tar.gz ${Home}/bin/Firmware
+			rm -rf Legacy
 		fi
 		if [ -f "${EFI_Firmware}" ];then
 			_MD5=$(md5sum ${EFI_Firmware} | cut -d ' ' -f1)
 			_SHA256=$(sha256sum ${EFI_Firmware} | cut -d ' ' -f1)
-			touch ${Home}/bin/Firmware/${AutoBuild_Firmware}-UEFI.detail
-			echo -e "\nMD5:${_MD5}\nSHA256:${_SHA256}" > ${Home}/bin/Firmware/${AutoBuild_Firmware}-UEFI.detail
-			cp ${EFI_Firmware} ${Home}/bin/Firmware/${AutoBuild_Firmware}-UEFI.${Firmware_sfx}
+			touch ./UEFI/${AutoBuild_Firmware}-UEFI.detail
+			echo -e "\nMD5:${_MD5}\nSHA256:${_SHA256}" > ./UEFI/${AutoBuild_Firmware}-UEFI.detail
+			cp ${EFI_Firmware} ./UEFI/${AutoBuild_Firmware}-UEFI.${Firmware_sfx}
+			find ./UEFI -name "*" -type f -size 0c | xargs -n 1 rm -f
+			tar -zcf ${AutoBuild_Firmware}-UEFI.tar.gz ./UEFI
+			mv ${AutoBuild_Firmware}-UEFI.tar.gz ${Home}/bin/Firmware
+			rm -rf UEFI
 		fi
 	;;
 	*)
@@ -167,7 +176,6 @@ Diy_Part3() {
 	;;
 	esac
 	cd ${Home}
-	find ${Home}/bin/Firmware -name "*" -type f -size 0c | xargs -n 1 rm -f
 }
 
 Mkdir() {
