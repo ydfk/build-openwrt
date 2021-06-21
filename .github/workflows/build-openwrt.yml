@@ -20,9 +20,6 @@ on:
   #   - cron: 0 18 * * SAT
 
 env:
-  LEDE: https://github.com/coolsnowwolf/lede
-  LIENOL: https://github.com/Lienol/openwrt
-  PROJECT: https://github.com/immortalwrt/immortalwrt
   GITURL: https://github.com/${{github.repository}}
   Author: ${{github.actor}}
   Apidz: ${{github.repository}}
@@ -84,7 +81,10 @@ jobs:
 
       - name: 电报机器人信息通知
         run: |
-          curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=🎉 主人您要编译的[${{ matrix.target }}]固件正在努力耕耘中,请耐心等待...... 😋" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
+        if [[ "${SERVERCHAN_SCKEY}" == "true" ]]; then
+          curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=🎉 主人:
+          您正在使用【${{matrix.target}}】文件夹编译固件中(${{env.CangKu}}仓库的#${{env.Run_number}}号),请耐心等待...... 😋" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
+        fi
 
       - name: 整理编译环境
         env:
@@ -162,6 +162,8 @@ jobs:
           cd openwrt
           source "${PATH1}/common.sh" && Diy_chajian > /dev/null 2>&1
           make defconfig > /dev/null 2>&1
+          echo "TARGET_BOARD=$(awk -F '[="]+' '/TARGET_BOARD/{print $2}' .config)" >> $GITHUB_ENV
+          echo "TARGET_SUBTARGET=$(awk -F '[="]+' '/TARGET_SUBTARGET/{print $2}' .config)" >> $GITHUB_ENV
           if [ `grep -c "CONFIG_TARGET_x86_64=y" .config` -eq '1' ]; then
             echo "x86-64" > DEVICE_NAME
             [ -s DEVICE_NAME ] && echo "TARGET_PROFILE=$(cat DEVICE_NAME)" >> $GITHUB_ENV
