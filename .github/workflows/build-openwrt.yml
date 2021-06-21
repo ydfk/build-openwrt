@@ -25,6 +25,7 @@ env:
   PROJECT: https://github.com/immortalwrt/immortalwrt
   GITURL: https://github.com/${{github.repository}}
   Author: ${{github.actor}}
+  Apidz: ${{github.repository}}
   Run_number: ${{github.run_number}}
   Run_workflow: ${{github.workflow}}
   TZ: Asia/Shanghai
@@ -69,6 +70,7 @@ jobs:
         run: |
           echo
           chmod -R +x "${GITHUB_WORKSPACE}/build/common"
+          echo "Compile_Date=$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
           if [[ "${REPO_BRANCH}" == "master" ]]; then
             echo "ZZZ=package/lean/default-settings/files/zzz-default-settings" >> $GITHUB_ENV
             echo "CODE=Lede" >> $GITHUB_ENV
@@ -77,20 +79,12 @@ jobs:
             echo "ZZZ=package/default-settings/files/zzz-default-settings" >> $GITHUB_ENV
             echo "CODE=Lienol" >> $GITHUB_ENV
             echo "OpenWrt_name=19.07" >> $GITHUB_ENV
-          elif [[ "${REPO_BRANCH}" == "openwrt-18.06" ]]; then
-            echo "ZZZ=package/emortal/default-settings/files/zzz-default-settings" >> $GITHUB_ENV
-            echo "CODE=Project" >> $GITHUB_ENV
-            echo "OpenWrt_name=18.06" >> $GITHUB_ENV
-          elif [[ "${REPO_BRANCH}" == "openwrt-21.02" ]]; then
-            echo "ZZZ=package/emortal/default-settings/files/zzz-default-settings" >> $GITHUB_ENV
-            echo "CODE=Spirit" >> $GITHUB_ENV
-            echo "OpenWrt_name=21.02" >> $GITHUB_ENV
           fi
           source build/common/common.sh && Diy_gonggao
 
       - name: 电报机器人信息通知
         run: |
-          curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=🎉 主人您要编译的[${{ env.WXFB_MESSAGE }}]固件正在努力耕耘中,请耐心等待...... 😋" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
+          curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=🎉 主人您要编译的[${{ matrix.target }}]固件正在努力耕耘中,请耐心等待...... 😋" "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage"
 
       - name: 整理编译环境
         env:
@@ -99,6 +93,7 @@ jobs:
           docker rmi `docker images -q` > /dev/null 2>&1
           sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /usr/lib/jvm /opt/ghc
           sudo -E apt-get -qq update
+          sudo apt-get full-upgrade -y
           sudo -E apt-get -qq install $(curl -fsSL git.io/depends-ubuntu-2004)
           sudo -E apt-get -qq autoremove --purge
           sudo -E apt-get -qq clean
@@ -131,26 +126,12 @@ jobs:
             source "${PATH1}/common.sh" && Diy_lede
             cp -Rf "${Home}"/build/common/LEDE/files "${Home}"
             cp -Rf "${Home}"/build/common/LEDE/diy/* "${Home}"
-            echo "NAME2=Lede" >> $GITHUB_ENV
-            echo "ZUOZHE=Lean's" >> $GITHUB_ENV
+            cp -Rf "${Home}"/build/common/LEDE/patches/* "${PATH1}/patches"
           elif [[ "${REPO_BRANCH}" == "19.07" ]]; then
             source "${PATH1}/common.sh" && Diy_lienol
             cp -Rf "${Home}"/build/common/LIENOL/files "${Home}"
             cp -Rf "${Home}"/build/common/LIENOL/diy/* "${Home}"
-            echo "NAME2=Lienol" >> $GITHUB_ENV
-            echo "ZUOZHE=lienol's" >> $GITHUB_ENV
-          elif [[ "${REPO_BRANCH}" == "openwrt-18.06" ]]; then
-            source "${PATH1}/common.sh" && Diy_1806
-            cp -Rf "${Home}"/build/common/PROJECT/files "${Home}"
-            cp -Rf "${Home}"/build/common/PROJECT/diy/* "${Home}"
-            echo "NAME2=Lienol" >> $GITHUB_ENV
-            echo "ZUOZHE=Immortalwrt18.06" >> $GITHUB_ENV
-          elif [[ "${REPO_BRANCH}" == "openwrt-21.02" ]]; then
-            source "${PATH1}/common.sh" && Diy_2102
-            cp -Rf "${Home}"/build/common/SPIRIT/files "${Home}"
-            cp -Rf "${Home}"/build/common/SPIRIT/diy/* "${Home}"
-            echo "NAME2=Immortalwrt21.02" >> $GITHUB_ENV
-            echo "ZUOZHE=immortalwrt's" >> $GITHUB_ENV
+            cp -Rf "${Home}"/build/common/LIENOL/patches/* "${PATH1}/patches"
           fi
           source "${PATH1}/common.sh" && Diy_all
           /bin/bash "${PATH1}/$DIY_PART_SH"
@@ -162,9 +143,6 @@ jobs:
           fi
           if [ -n "$(ls -A "${PATH1}/patches" 2>/dev/null)" ]; then
             find "${PATH1}/patches" -type f -name '*.patch' -print0 | sort -z | xargs -I % -t -0 -n 1 sh -c "cat '%'  | patch -d './' -p1 --forward --no-backup-if-mismatch"
-          fi
-          if [[ "${REPO_BRANCH}" =~ (21.02|openwrt-21.02) ]]; then
-            /bin/bash ./Convert.sh
           fi
           ./scripts/feeds update -a && ./scripts/feeds install -a
           [ -e "$PATH1/$CONFIG_FILE" ] && mv "$PATH1/$CONFIG_FILE" .config
@@ -216,28 +194,17 @@ jobs:
         id: compile
         run: |
           cd openwrt
-          echo -e "$(($(nproc)+1)) thread compile"
-          make -j$(($(nproc)+1)) || make -j1 V=s
+          make -j$(nproc) V=s
           echo "::set-output name=status::success"
-          echo "date=$(date "+%y.%m.%d-%H%M")" >> $GITHUB_ENV
+          echo "date=$(date "+%Y%m%d%H%M%S")" >> $GITHUB_ENV
           echo "date1=$(date "+%Y年%m月%d号-%H点%M分")" >> $GITHUB_ENV
           echo "date2=$(date "+%Y%m%d%H%M%S")" >> $GITHUB_ENV
-          DEVICE="$(awk -F '[="]+' '/TARGET_BOARD/{print $2}' .config)"
-          SUBTARGET="$(awk -F '[="]+' '/TARGET_SUBTARGET/{print $2}' .config)"
-          if [ "${DEVICE}" == "x86" ]; then
-           echo "NAME1=x86-${SUBTARGET}" >> $GITHUB_ENV
-          elif [[ ${{matrix.target}} =~ (Lede_phicomm_n1|Project_phicomm_n1) ]]; then
-           echo "NAME1=N1,Vplus,Beikeyun,L1Pro,S9xxx" >> $GITHUB_ENV
-          else
-           grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > NAME1
-           [ -s NAME1 ] && echo "NAME1=$(cat NAME1)" >> $GITHUB_ENV
-          fi
 
       - name: 上传bin文件夹(固件+ipk)在github actions
         uses: actions/upload-artifact@v2
         if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
         with:
-          name: OpenWrt_bin_${{ env.NAME2 }}_${{ env.NAME1 }}_${{ env.date }}
+          name: OpenWrt_bin_${{ env.Code }}_${{ env.TARGET_PROFILE }}_${{ env.date }}
           path: openwrt/bin
 
       - name: 整理固件文件夹
@@ -275,7 +242,7 @@ jobs:
         uses: actions/upload-artifact@v2
         if: steps.organizer.outputs.status == 'success' && env.UPLOAD_FIRMWARE == 'true'
         with:
-          name: OpenWrt-${{ env.NAME2 }}-${{ env.NAME1 }}-firmware-${{ env.date }}
+          name: OpenWrt-${{ env.Code }}-${{ env.TARGET_PROFILE }}-firmware-${{ env.date }}
           path: ${{ env.FIRMWARE }}
 
       - name: 把定时更新固件发布到云端
@@ -294,25 +261,23 @@ jobs:
           echo "☆  发布于$(date +"%Y年%m月%d号-%H点%M分")(#${{github.run_number}})" > update_log.txt
           echo "☆  源码 : ${{ env.REPO_URL }}" >> update_log.txt
           echo "☆  分支 : ${{ env.REPO_BRANCH }}" >> update_log.txt
-          echo "☆  感谢源码作者[ ${{ env.ZUOZHE }}大神 ]无私分享！" >> update_log.txt
 
       - name: 发布固件
         uses: ncipollo/release-action@v1
         if: steps.organizer.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true'
         with:
-          name: ${{ env.date1 }} 「 ${{ env.NAME2 }}-${{ env.NAME1 }} 」固件
+          name: ${{ env.date1 }} 「 ${{ env.Code }}-${{ env.TARGET_PROFILE }} 」固件
           tag: ${{ env.date2 }}
           token: ${{ secrets.REPO_TOKEN }}
           body: |
             ☆  发布于${{env.date1}}
             ☆  源码 : ${{ env.REPO_URL }}
             ☆  分支 : ${{ env.REPO_BRANCH }}
-            ☆  感谢源码作者[ ${{ env.ZUOZHE }}大神 ]无私分享！"
           artifacts: "${{ env.FIRMWARE }}/*"
 
       - name: 电报机器人信息通知
         run: |
-          curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=我亲爱的✨主人✨您要编译的[ ${{ env.NAME2 }}-${{ env.NAME1 }} ]固件顺利编译完成了！
+          curl -k --data chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" --data "text=我亲爱的✨主人✨您要编译的[ ${{ env.Code }}-${{ env.TARGET_PROFILE }} ]固件顺利编译完成了！
             完成时间：${{ env.date1 }}
             发布地址：${{ env.GITHUB_RELEASE }}/releases
             固件: ${{ env.CangKu }}仓库的#${{ env.Run_number }}号
