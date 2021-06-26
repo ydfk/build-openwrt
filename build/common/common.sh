@@ -209,25 +209,14 @@ fi
 ################################################################################################################
 Diy_chuli() {
 
-if [[ "${TARGET_PROFILE}" == "x86-64" ]]; then
-	cp -Rf "${Home}"/build/common/Custom/DRM-I915 target/linux/x86/DRM-I915
-	for X in $(ls -1 target/linux/x86 | grep "config-"); do echo -e "\n$(cat target/linux/x86/DRM-I915)" >> target/linux/x86/${X}; done
-elif [[ "${TARGET_PROFILE}" == "d-team_newifi-d2" ]]; then
-	cp -Rf "${Home}"/build/common/Custom/mac80211.sh "${Home}"/package/kernel/mac80211/files/lib/wifi/mac80211.sh
-fi
 grep -i CONFIG_PACKAGE_luci-app .config | grep  -v \# > Plug-in
 grep -i CONFIG_PACKAGE_luci-theme .config | grep  -v \# >> Plug-in
-sed -i '/INCLUDE/d' Plug-in > /dev/null 2>&1
-sed -i 's/CONFIG_PACKAGE_/、/g' Plug-in
-sed -i 's/=y/\"/g' Plug-in
 awk '$0=NR$0' Plug-in > Plug-2
+sed -i '/INCLUDE/d' Plug-2 > /dev/null 2>&1
+sed -i 's/CONFIG_PACKAGE_/、/g' Plug-2
+sed -i 's/=y/\"/g' Plug-2
 awk '{print "	" $0}' Plug-2 > Plug-in
 sed -i "s/^/TIME g \"/g" Plug-in
-cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c > CPU
-cat /proc/cpuinfo | grep "cpu cores" | uniq >> CPU
-sed -i 's|[[:space:]]||g; s|^.||' CPU && sed -i 's|CPU||g; s|pucores:||' CPU
-CPUNAME="$(awk 'NR==1' CPU)" && CPUCORES="$(awk 'NR==2' CPU)"
-rm -rf CPU
 find . -name 'LICENSE' -o -name 'README' -o -name 'README.md' | xargs -i rm -rf {}
 find . -name 'CONTRIBUTED.md' -o -name 'README_EN.md' -o -name 'DEVICE_NAME' | xargs -i rm -rf {}
 }
