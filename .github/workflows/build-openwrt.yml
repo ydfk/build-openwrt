@@ -62,6 +62,7 @@ jobs:
           echo "Updete_firmware=${Updete_firmware}" >> $GITHUB_ENV
           echo "Extension=${Extension}" >> $GITHUB_ENV
           echo "GITHUB_RELEASE=$(grep "https://github.com/[a-zA-Z0-9]" ${GITHUB_WORKSPACE}/.git/config | cut -c8-100)" >> $GITHUB_ENV
+          echo "BY_INFORMATION=${BY_INFORMATION}" >> $GITHUB_ENV
 
       - name: 公 告
         run: |
@@ -78,6 +79,7 @@ jobs:
             echo "OpenWrt_name=19.07" >> $GITHUB_ENV
           fi
           source build/common/common.sh && Diy_gonggao
+          source build/common/common.sh && Diy_tongzhi
 
       - name: 电报机器人信息通知
         if: env.SERVERCHAN_SCKEY == 'true'
@@ -155,7 +157,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
 
-      - name: 准备就绪
+      - name: 生成配置文件
         run: |
           cd openwrt
           source "${PATH1}/common.sh" && Diy_chajian > /dev/null 2>&1
@@ -174,13 +176,15 @@ jobs:
 
       - name: 编译信息
         run: |
-          cd openwrt
-          source "${PATH1}/common.sh" && Diy_chuli > /dev/null 2>&1
-          if [ "${REGULAR_UPDATE}" == "true" ]; then
-            source "${PATH1}/upgrade.sh" && Diy_Part2 > /dev/null 2>&1
-          fi
+        cd openwrt
+        source "${PATH1}/common.sh" && Diy_chuli > /dev/null 2>&1
+        if [ "${REGULAR_UPDATE}" == "true" ]; then
+          source "${PATH1}/upgrade.sh" && Diy_Part2 > /dev/null 2>&1
+        fi
+        if [ "${BY_INFORMATION}" == "true" ]; then
           source "${PATH1}/upgrade.sh" > /dev/null 2>&1
           source "${PATH1}/common.sh" && Diy_xinxi
+        fi
 
       - name: 下载软件包
         id: package
