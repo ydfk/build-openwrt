@@ -110,7 +110,6 @@ jobs:
           ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
           echo "Home=${GITHUB_WORKSPACE}/openwrt" >> $GITHUB_ENV
           echo "PATH1=${GITHUB_WORKSPACE}/openwrt/build/${{matrix.target}}" >> $GITHUB_ENV
-          echo "artifact=${GITHUB_WORKSPACE}/openwrt/bin/Firmware" >> $GITHUB_ENV
 
       - name: 加载源,patch补丁和自定义设置
         run: |
@@ -215,14 +214,10 @@ jobs:
         id: organizer
         run: |
           cd openwrt
-          if [[ "${REGULAR_UPDATE}" == "true" ]]; then
-            source "${PATH1}/upgrade.sh" && Diy_Part3
-          fi
-          if [ -n "$(ls -A "bin/targets/x86" 2>/dev/null)" ]; then
-            find bin/targets/x86/* -name "*kernel*" | xargs -i mv -f {} bin/targets
-          fi
-          cd bin/targets/*/*
-          rm -rf packages && mkdir packages
+          cp -Rf bin/targets/*/* "${Home}"/upgrade
+          cd bin && mkdir config
+          cp -Rf targets/*/*/config.buildinfo "${Home}"/bin/config/config.txt
+          cd targets/*/*
           find -name "*feeds.buildinfo*" | xargs -i mv -f {} packages
           find -name "*version.buildinfo*" | xargs -i mv -f {} packages
           find -name "*sha256sums*" | xargs -i mv -f {} packages
@@ -235,12 +230,12 @@ jobs:
           echo "BOT=TRUE" >> $GITHUB_ENV
           echo "::set-output name=status::success"
 
-      # - name: 上传.config配置文件在github actions
-      #   uses: actions/upload-artifact@v2
-      #   if: steps.organizer.outputs.status == 'success' && env.UPLOAD_CONFIG == 'true'
-      #   with:
-      #     name: .config_${{ env.CODE }}_${{ env.TARGET_PROFILE }}_${{ env.date }}
-      #     path: openwrt/bin/config
+      - name: 上传.config配置文件在github actions
+        uses: actions/upload-artifact@v2
+        if: steps.organizer.outputs.status == 'success' && env.UPLOAD_CONFIG == 'true'
+        with:
+          name: .config_${{ env.CODE }}_${{ env.TARGET_PROFILE }}_${{ env.date }}
+          path: openwrt/bin/config
 
       - name: 上传固件在github actions
         uses: actions/upload-artifact@v2
@@ -248,16 +243,6 @@ jobs:
         with:
           name: OpenWrt-${{ env.Code }}-${{ env.TARGET_PROFILE }}-firmware-${{ env.date }}
           path: ${{ env.FIRMWARE }}
-
-      - name: 把定时更新固件发布到云端
-        uses: softprops/action-gh-release@v1
-        if: steps.organizer.outputs.status == 'success' && env.REGULAR_UPDATE == 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-        with:
-          name: 定时升级云端地址
-          tag_name: update_Firmware
-          files: ${{ env.artifact }}/*
 
       - name: 整理发布信息
         if: steps.organizer.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true'
@@ -278,6 +263,22 @@ jobs:
             ☆  源码 : ${{ env.REPO_URL }}
             ☆  分支 : ${{ env.REPO_BRANCH }}
           artifacts: "${{ env.FIRMWARE }}/*"
+
+      - name: 整理定时更新需要的固件
+        if: steps.compile.outputs.status == 'success' && env.REGULAR_UPDATE == 'true'
+        run: |
+        cd openwrt
+        source "${PATH1}/upgrade.sh" && Diy_Part3
+
+      - name: 把定时更新固件发布到云端
+        uses: softprops/action-gh-release@v1
+        if: steps.organizer.outputs.status == 'success' && env.REGULAR_UPDATE == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+        with:
+          name: update_Firmware
+          tag_name: AutoUpdate
+          files: openwrt/bin/Firmware/*
 
       - name: 电报机器人信息通知
         if: env.SERVERCHAN_SCKEY == 'true'
