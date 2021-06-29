@@ -45,7 +45,6 @@ jobs:
       - name: 检测脚本设置
         run: |
           source "${GITHUB_WORKSPACE}/build/${{matrix.target}}/settings.ini"
-          echo "Modelfile=${{matrix.target}}" >> $GITHUB_ENV
           echo "REPO_URL=${REPO_URL}" >> $GITHUB_ENV
           echo "REPO_BRANCH=${REPO_BRANCH}" >> $GITHUB_ENV
           echo "CONFIG_FILE=${CONFIG_FILE}" >> $GITHUB_ENV
@@ -58,12 +57,10 @@ jobs:
           echo "UPLOAD_RELEASE=${UPLOAD_RELEASE}" >> $GITHUB_ENV
           echo "SERVERCHAN_SCKEY=${SERVERCHAN_SCKEY}" >> $GITHUB_ENV
           echo "REGULAR_UPDATE=${REGULAR_UPDATE}" >> $GITHUB_ENV
-          echo "CangKu=${Apidz##*/}" >> $GITHUB_ENV
-          echo "Updete_firmware=${Updete_firmware}" >> $GITHUB_ENV
-          echo "Extension=${Extension}" >> $GITHUB_ENV
-          echo "GITHUB_RELEASE=$(grep "https://github.com/[a-zA-Z0-9]" ${GITHUB_WORKSPACE}/.git/config | cut -c8-100)" >> $GITHUB_ENV
           echo "BY_INFORMATION=${BY_INFORMATION}" >> $GITHUB_ENV
+          echo "CangKu=${Apidz##*/}" >> $GITHUB_ENV          
           echo "Modelfile=${{matrix.target}}" >> $GITHUB_ENV
+          echo "GITHUB_RELEASE=$(grep "https://github.com/[a-zA-Z0-9]" ${GITHUB_WORKSPACE}/.git/config | cut -c8-100)" >> $GITHUB_ENV
 
       - name: 公 告
         run: |
