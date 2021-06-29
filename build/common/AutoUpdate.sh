@@ -62,8 +62,7 @@ wget -q --timeout 5 ${Github_Tags} -O ${Download_Path}/Github_Tags
 	exit 1
 }
 source /etc/openwrt_info
-KERN="$(awk -F '[: "]+' '/Version/{print $2}' /usr/lib/opkg/info/kernel.control)"
-Kernel="${KERN%-*-*}"
+Kernel="$(egrep -o "[0-9]+\.[0-9]+\.[0-9]+" /usr/lib/opkg/info/kernel.control)"
 case ${DEFAULT_Device} in
 x86-64)
 	[ -f /etc/openwrt_boot ] && {
@@ -88,7 +87,7 @@ if [[ "${REPO_Name}" == "lede" ]]; then
 	lienol_Device="19.07-lienol-${DEFAULT_Device}.*${Firmware_SFX}"
 	if [[ `cat ${Download_Path}/Github_Tags | grep -c "${lienol_Device}"` -ge '1' ]]; then
 		TIME z "请注意：选择更改其他源码固件后立即执行不保留配置安装固件"
-		TIME y "您当前固件为：${REPO_Name} ${Luci_Edition} ${Kernel}内核版!"
+		TIME y "您当前固件为：${REPO_Name} ${Luci_Edition} ${Kernel} 内核版!"
 	else
 		TIME r "没有检测到有其他作者相同机型的固件版本或者固件格式不相同!"
 		echo
@@ -99,7 +98,7 @@ if [[ "${REPO_Name}" == "lienol" ]]; then
 	lede_Device="18.06-lede-${DEFAULT_Device}.*${Firmware_SFX}"
 	if [[ `cat ${Download_Path}/Github_Tags | grep -c "${lede_Device}"` -ge '1' ]]; then
 		TIME z "请注意：选择更改其他源码固件后立即执行不保留配置安装固件"
-		TIME y "您当前固件为：${REPO_Name} ${Luci_Edition} ${Kernel}内核版!"
+		TIME y "您当前固件为：${REPO_Name} ${Luci_Edition} ${Kernel} 内核版!"
 	else
 		TIME r "没有检测到有其他作者相同机型的固件版本或者固件格式不相同!"
 		echo

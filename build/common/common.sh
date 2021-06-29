@@ -57,6 +57,25 @@ sed -i "/exit 0/i\chmod +x /etc/webweb.sh && source /etc/webweb.sh > /dev/null 2
 
 
 ################################################################################################################
+# 天灵源码21.02 diy.sh文件
+################################################################################################################
+Diy_mortal() {
+
+find . -name 'luci-app-argon-config' -o -name 'luci-theme-argon'  | xargs -i rm -rf {}
+
+rm -rf package/emortal/default-settings
+svn co https://github.com/Lienol/openwrt/trunk/package/default-settings package/emortal/default-settings
+mv -f "${Home}"/build/common/zzz-default-settings package/emortal/default-settings/files/zzz-default-settings
+
+mv -f "${Home}"/build/common/Convert.sh "${Home}"
+bash ./Convert.sh
+
+sed -i "/exit 0/i\sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release" "${ZZZ}"
+sed -i "/exit 0/i\chmod +x /etc/webweb.sh && source /etc/webweb.sh > /dev/null 2>&1" package/base-files/files/etc/rc.local
+}
+
+
+################################################################################################################
 # 全部作者源码公共diy.sh文件
 ################################################################################################################
 Diy_all() {
@@ -209,14 +228,25 @@ fi
 ################################################################################################################
 Diy_chuli() {
 
+if [[ "${TARGET_PROFILE}" == "x86-64" ]]; then
+	cp -Rf "${Home}"/build/common/Custom/DRM-I915 target/linux/x86/DRM-I915
+	for X in $(ls -1 target/linux/x86 | grep "config-"); do echo -e "\n$(cat target/linux/x86/DRM-I915)" >> target/linux/x86/${X}; done
+elif [[ "${TARGET_PROFILE}" == "d-team_newifi-d2" ]]; then
+	cp -Rf "${Home}"/build/common/Custom/mac80211.sh "${Home}"/package/kernel/mac80211/files/lib/wifi/mac80211.sh
+fi
 grep -i CONFIG_PACKAGE_luci-app .config | grep  -v \# > Plug-in
 grep -i CONFIG_PACKAGE_luci-theme .config | grep  -v \# >> Plug-in
+sed -i '/INCLUDE/d' Plug-in > /dev/null 2>&1
+sed -i 's/CONFIG_PACKAGE_/、/g' Plug-in
+sed -i 's/=y/\"/g' Plug-in
 awk '$0=NR$0' Plug-in > Plug-2
-sed -i '/INCLUDE/d' Plug-2 > /dev/null 2>&1
-sed -i 's/CONFIG_PACKAGE_/、/g' Plug-2
-sed -i 's/=y/\"/g' Plug-2
 awk '{print "	" $0}' Plug-2 > Plug-in
 sed -i "s/^/TIME g \"/g" Plug-in
+cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c > CPU
+cat /proc/cpuinfo | grep "cpu cores" | uniq >> CPU
+sed -i 's|[[:space:]]||g; s|^.||' CPU && sed -i 's|CPU||g; s|pucores:||' CPU
+CPUNAME="$(awk 'NR==1' CPU)" && CPUCORES="$(awk 'NR==2' CPU)"
+rm -rf CPU
 find . -name 'LICENSE' -o -name 'README' -o -name 'README.md' | xargs -i rm -rf {}
 find . -name 'CONTRIBUTED.md' -o -name 'README_EN.md' -o -name 'DEVICE_NAME' | xargs -i rm -rf {}
 }
@@ -275,6 +305,8 @@ GET_TARGET_INFO
 	TARGET_kernel="${amlogic_kernel}"
 	TARGET_model="${amlogic_model}"
 }
+PATCHVER=$(egrep -o "KERNEL_PATCHVER:=[0-9].+" target/linux/${TARGET_BOARD}/Makefile)
+KERNEL_PATCHVER="${PATCHVER##*:=}"
 echo
 TIME b "编译源码: ${CODE}"
 TIME b "源码链接: ${REPO_URL}"
@@ -286,6 +318,7 @@ TIME b "源码作者: ${ZUOZHE}"
 } || {
 	TIME b "编译机型: ${TARGET_PROFILE}"
 }
+TIME b "内核版本: ${KERNEL_PATCHVER}"
 TIME b "固件作者: ${Author}"
 TIME b "仓库地址: ${Github}"
 TIME b "启动编号: #${Run_number}（${CangKu}仓库第${Run_number}次启动[${Run_workflow}]工作流程）"

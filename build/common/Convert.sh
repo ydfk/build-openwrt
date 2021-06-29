@@ -1,4 +1,11 @@
 #!/bin/bash
+###
+ # @Description: Copyright (c) ydfk. All rights reserved
+ # @Author: ydfk
+ # @Date: 2021-06-08 13:42:34
+ # @LastEditors: ydfk
+ # @LastEditTime: 2021-06-29 20:20:56
+### 
 # [CTCGFW]Project-OpenWrt
 # Use it under GPLv3, please.
 # --------------------------------------------------------
@@ -16,8 +23,6 @@ done
 po_file2="$({ find |grep "/zh-cn/" |grep "\.po"; } 2>"/dev/null")"
 for b in ${po_file2}
 do
-	sed -i '1i msgid ""' "$b"
-	sed -i '2i msgid "Content-Type: text/plain; charset=UTF-8\\n"\n' "$b"
 	[ -n "$(grep "Language: zh_CN" "$b")" ] && sed -i "s/Language: zh_CN/Language: zh_Hans/g" "$b"
 	po_new_file2="$(echo -e "$b"|sed "s/zh-cn/zh_Hans/g")"
 	mv "$b" "${po_new_file2}" 2>"/dev/null"
