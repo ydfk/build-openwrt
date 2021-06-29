@@ -223,8 +223,8 @@ jobs:
           cd bin && mkdir config
           cp -Rf targets/*/*/config.buildinfo "${Home}"/bin/config/config.txt
           cd targets/*/*
-          find -name "*feeds.buildinfo*" | xargs -i mv -f {} 
-          find -name "*version.buildinfo*" | xargs -i mv -f {} 
+          # find -name "*feeds.buildinfo*" | xargs -i mv -f {} 
+          # find -name "*version.buildinfo*" | xargs -i mv -f {} 
           find -name "*sha256sums*" | xargs -i mv -f {} 
           find -name "*manifest*" | xargs -i mv -f {} 
           find -name "*vmlinuz*" | xargs -i mv -f {} 
