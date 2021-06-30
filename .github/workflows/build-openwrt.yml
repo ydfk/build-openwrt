@@ -20,7 +20,7 @@ on:
   #   - cron: 0 18 * * SAT
 
 env:
-  GITURL: https://github.com/${{github.repository}}
+  Github: https://github.com/${{github.repository}}
   Author: ${{github.actor}}
   Apidz: ${{github.repository}}
   Run_number: ${{github.run_number}}
@@ -222,15 +222,15 @@ jobs:
           cp -Rf bin/targets/*/* "${Home}"/upgrade
           cd bin && mkdir config
           cp -Rf targets/*/*/config.buildinfo "${Home}"/bin/config/config.txt
-          cd targets/*/*
+          # cd targets/*/*
           # find -name "*feeds.buildinfo*" | xargs -i mv -f {} 
           # find -name "*version.buildinfo*" | xargs -i mv -f {} 
-          find -name "*sha256sums*" | xargs -i mv -f {} 
-          find -name "*manifest*" | xargs -i mv -f {} 
-          find -name "*vmlinuz*" | xargs -i mv -f {} 
-          find -name "*Image*" | xargs -i mv -f {} 
-          find -name "*.vmdk*" | xargs -i mv -f {} 
-          rm -rf packages
+          # find -name "*sha256sums*" | xargs -i mv -f {} 
+          # find -name "*manifest*" | xargs -i mv -f {} 
+          # find -name "*vmlinuz*" | xargs -i mv -f {} 
+          # find -name "*Image*" | xargs -i mv -f {} 
+          # find -name "*.vmdk*" | xargs -i mv -f {} 
+          # rm -rf packages
           echo "FIRMWARE=$PWD" >> $GITHUB_ENV
           echo "BOT=TRUE" >> $GITHUB_ENV
           echo "::set-output name=status::success"
