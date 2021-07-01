@@ -46,7 +46,7 @@ GET_TARGET_INFO() {
 	} || AutoUpdate_Version=OFF
 	In_Firmware_Info="${Home}/package/base-files/files/etc/openwrt_info"
 	Github_Release="${Github}/releases/download/AutoUpdate"
-	Github_Tags="https://api.github.com/repos/${Apidz}/releases/tags/AutoUpdate"
+	Github_Tags="https://api.github.com/repos/${Apidz}/releases/tags/AutoUpdate?access_token=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"
 	Github_UP_RELEASE="${Github}/releases/AutoUpdate"
 	Openwrt_Version="${REPO_Name}-${TARGET_PROFILE}-${Compile_Date}"
 	Egrep_Firmware="${LUCI_Name}-${REPO_Name}-${TARGET_PROFILE}"
