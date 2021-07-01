@@ -1,16 +1,16 @@
 #!/bin/bash
-###
- # @Description: Copyright (c) ydfk. All rights reserved
- # @Author: ydfk
- # @Date: 2021-06-08 13:42:34
- # @LastEditors: ydfk
- # @LastEditTime: 2021-06-29 20:20:56
-### 
-# [CTCGFW]Project-OpenWrt
-# Use it under GPLv3, please.
-# --------------------------------------------------------
-# Convert translation files zh-cn to zh_Hans
-# The script is still in testing, welcome to report bugs.
+
+rm -rf package/emortal/default-settings
+svn co https://github.com/Lienol/openwrt/trunk/package/default-settings package/emortal/default-settings
+chmod 775 zzz-default-settings
+cp -Rf zzz-default-settings package/emortal/default-settings/files/zzz-default-settings
+cp -Rf SourceCode feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js
+cp -Rf SourceCode package/emortal/autocore/files/arm/rpcd_10_system.js
+cp -Rf SourceCode package/emortal/autocore/files/x86/rpcd_10_system.js
+chmod 664 feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/include/10_system.js
+chmod 664 package/emortal/autocore/files/arm/rpcd_10_system.js
+chmod 664 package/emortal/autocore/files/x86/rpcd_10_system.js
+rm -rf {zzz-default-settings,SourceCode,Convert.sh}
 
 po_file="$({ find |grep -E "[a-z0-9]+\.zh\-cn.+po"; } 2>"/dev/null")"
 for a in ${po_file}
@@ -23,6 +23,10 @@ done
 po_file2="$({ find |grep "/zh-cn/" |grep "\.po"; } 2>"/dev/null")"
 for b in ${po_file2}
 do
+	[[ `grep -c "charset=UTF-8" "$b"` -eq '0' ]] && {
+	sed -i '1i msgid ""' "$b"
+	sed -i '2i msgid "Content-Type: text/plain; charset=UTF-8\\n"\n' "$b"
+	}
 	[ -n "$(grep "Language: zh_CN" "$b")" ] && sed -i "s/Language: zh_CN/Language: zh_Hans/g" "$b"
 	po_new_file2="$(echo -e "$b"|sed "s/zh-cn/zh_Hans/g")"
 	mv "$b" "${po_new_file2}" 2>"/dev/null"

@@ -40,6 +40,22 @@ GET_TARGET_INFO() {
 			Firmware_sfx="bin"
 		fi
 	;;
+	"openwrt-21.02")
+		LUCI_Name="21.02"
+		REPO_Name="mortal"
+		ZUOZHE="ctcgfw"
+		if [[ "${TARGET_PROFILE}" == "x86-64" ]]; then
+			Legacy_Firmware="immortalwrt-x86-64-generic-squashfs-combined.${Firmware_sfxo}"
+			UEFI_Firmware="immortalwrt-x86-64-generic-squashfs-combined-efi.${Firmware_sfxo}"
+			Firmware_sfx="${Firmware_sfxo}"
+		elif [[ "${TARGET_PROFILE}" == "phicomm-k3" ]]; then
+			Up_Firmware="immortalwrt-bcm53xx-phicomm-k3-squashfs.trx"
+			Firmware_sfx="trx"
+		else
+			Up_Firmware="openwrt-${TARGET_BOARD}-${TARGET_SUBTARGET}-${TARGET_PROFILE}-squashfs-sysupgrade.bin"
+			Firmware_sfx="bin"
+		fi
+	;;
 	esac
 	[ ${REGULAR_UPDATE} == "true" ] && {
 		AutoUpdate_Version=$(egrep -o "V[0-9].+" ${Home}/package/base-files/files/bin/AutoUpdate.sh | awk 'END{print}')

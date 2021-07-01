@@ -338,7 +338,7 @@ chmod -R +x $Home/build/common
 chmod -R +x $Home/build/${firmware}
 source $Home/build/${firmware}/settings.ini
 REGULAR_UPDATE="${REG_UPDATE}"
-cp -Rf $Home/build/common/compile.sh openwrt/compile.sh
+cp -Rf $Home/build/common/Custom/compile.sh openwrt/compile.sh
 cp -Rf $Home/build/common/*.sh openwrt/build/${firmware}
 echo
 TIME g "正在加载自定义文件和下载插件,请耐心等候~~~"
@@ -411,7 +411,9 @@ if [[ "${REGULAR_UPDATE}" == "true" ]]; then
 fi
 find . -name 'LICENSE' -o -name 'README' -o -name 'README.md' -o -name '*.git*' | xargs -i rm -rf {}
 find . -name 'CONTRIBUTED.md' -o -name 'README_EN.md' -o -name 'README.cn.md' | xargs -i rm -rf {}
-[ "${Menuconfig}" == "YES" ] && make menuconfig
+[ "${Menuconfig}" == "YES" ] && {
+make menuconfig
+}
 make defconfig
 cp -rf ${Home}/.config ${Home}/.bf_config
 TARGET_BOARD="$(awk -F '[="]+' '/TARGET_BOARD/{print $2}' .config)"
@@ -444,7 +446,7 @@ echo
 	fi
 	if [[ `grep -c "make with -j1 V=s or V=sc" build.log` -ge '1' ]]; then
 		echo
-		TIME y "连续两次下载DL都失败，请检查网络或者更换节点后再尝试编译!"
+		TIME r "下载DL失败，请检查网络或者更换节点后再尝试编译!"
 		echo
 		exit 1
 	fi
@@ -456,7 +458,7 @@ echo
 	make -j8 download 2>&1 |tee build.log
 	if [[ `grep -c "make with -j1 V=s or V=sc" build.log` -ge '1' ]]; then
 		echo
-		TIME y "连续两次下载DL都失败，请检查网络或者更换节点后再尝试编译!"
+		TIME r "下载DL失败，请检查网络或者更换节点后再尝试编译!"
 		echo
 		exit 1
 	fi

@@ -92,16 +92,14 @@ jobs:
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
-          docker rmi `docker images -q` > /dev/null 2>&1
-          sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /usr/lib/jvm /opt/ghc
-          sudo -E apt-get -qq update
-          sudo apt-get full-upgrade -y
-          sudo -E apt-get -qq install $(curl -fsSL git.io/depends-ubuntu-2004)
-          sudo -E apt-get -qq autoremove --purge
-          sudo -E apt-get -qq clean
-          sudo timedatectl set-timezone "$TZ"
-          sudo mkdir -p /workdir
-          sudo chown $USER:$GROUPS /workdir
+        sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /usr/lib/jvm /opt/ghc
+        sudo -E apt-get -qq update
+        sudo -E apt-get -qq install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch python3 python2.7 unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler g++-multilib antlr3 gperf wget curl swig rsync
+        sudo -E apt-get -qq autoremove --purge
+        sudo -E apt-get -qq clean
+        sudo timedatectl set-timezone "$TZ"
+        sudo mkdir -p /workdir
+        sudo chown $USER:$GROUPS /workdir
 
       - name: 下载"${{matrix.target}}"源码
         working-directory: /workdir
@@ -122,31 +120,13 @@ jobs:
           cd openwrt
           if [[ "${REPO_BRANCH}" == "master" ]]; then
             source "${PATH1}/common.sh" && Diy_lede
-            cp -Rf "${Home}"/build/common/LEDE/files "${Home}"
-            cp -Rf "${Home}"/build/common/LEDE/diy/* "${Home}"
-            cp -Rf "${Home}"/build/common/LEDE/patches/* "${PATH1}/patches"
           elif [[ "${REPO_BRANCH}" == "19.07" ]]; then
             source "${PATH1}/common.sh" && Diy_lienol
-            cp -Rf "${Home}"/build/common/LIENOL/files "${Home}"
-            cp -Rf "${Home}"/build/common/LIENOL/diy/* "${Home}"
-            cp -Rf "${Home}"/build/common/LIENOL/patches/* "${PATH1}/patches"
           elif [[ "${REPO_BRANCH}" == "openwrt-21.02" ]]; then
             source "${PATH1}/common.sh" && Diy_mortal
-            cp -Rf "${Home}"/build/common/MORTAL/files "${Home}"
-            cp -Rf "${Home}"/build/common/MORTAL/diy/* "${Home}"
-            cp -Rf "${Home}"/build/common/MORTAL/patches/* "${PATH1}/patches"
           fi
           source "${PATH1}/common.sh" && Diy_all
           /bin/bash "${PATH1}/$DIY_PART_SH"
-          if [ -n "$(ls -A "${PATH1}/diy" 2>/dev/null)" ]; then
-            cp -Rf "${PATH1}"/diy/* "${Home}"
-          fi
-          if [ -n "$(ls -A "${PATH1}/files" 2>/dev/null)" ]; then
-            cp -Rf "${PATH1}/files" "${Home}" && chmod -R +x ${Home}/files
-          fi
-          if [ -n "$(ls -A "${PATH1}/patches" 2>/dev/null)" ]; then
-            find "${PATH1}/patches" -type f -name '*.patch' -print0 | sort -z | xargs -I % -t -0 -n 1 sh -c "cat '%'  | patch -d './' -p1 --forward --no-backup-if-mismatch"
-          fi
           ./scripts/feeds update -a && ./scripts/feeds install -a
           mv "$PATH1/$CONFIG_FILE" .config
           if [[ "${REGULAR_UPDATE}" == "true" ]]; then
@@ -212,28 +192,25 @@ jobs:
         uses: actions/upload-artifact@v2
         if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
         with:
-          name: OpenWrt_bin_${{ env.CODE }}_${{ env.TARGET_PROFILE }}_${{ env.date }}
+          name: filename+ipk_${{ env.CODE }}_${{ env.TARGET_PROFILE }}_${{ env.Compile_Date }}
           path: openwrt/bin
 
       - name: 整理固件文件夹
         id: organizer
         run: |
+          if [ "${Modelfile}" == "openwrt_amlogic" ]; then
+            source "${PATH1}/common.sh" && Diy_amlogic
+          fi
           cd openwrt
           cp -Rf bin/targets/*/* "${Home}"/upgrade
           cd bin && mkdir config
           cp -Rf targets/*/*/config.buildinfo "${Home}"/bin/config/config.txt
           cd targets/*/*
-          # find -name "*feeds.buildinfo*" | xargs -i mv -f {} 
-          # find -name "*version.buildinfo*" | xargs -i mv -f {} 
-          # find -name "*sha256sums*" | xargs -i mv -f {} 
-          # find -name "*manifest*" | xargs -i mv -f {} 
-          # find -name "*vmlinuz*" | xargs -i mv -f {} 
-          # find -name "*Image*" | xargs -i mv -f {} 
-          # find -name "*.vmdk*" | xargs -i mv -f {} 
-          rm -rf feeds.buildinfo
-          rm -rf openwrt-x86-64-generic.manifest
-          rm -rf sha256sums
-          rm -rf version.buildinfo
+          # find -name "*buildinfo*" | xargs -i rm -rf {}
+          find -name "*sha256sums*" | xargs -i rm -rf {}
+          find -name "*manifest*" | xargs -i rm -rf {}
+          find -name "*vmlinuz*" | xargs -i rm -rf {}
+          find -name "*Image*" | xargs -i rm -rf {}
           rm -rf packages
           echo "FIRMWARE=$PWD" >> $GITHUB_ENV
           echo "BOT=TRUE" >> $GITHUB_ENV

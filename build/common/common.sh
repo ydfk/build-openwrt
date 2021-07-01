@@ -63,14 +63,6 @@ Diy_mortal() {
 
 find . -name 'luci-app-argon-config' -o -name 'luci-theme-argon'  | xargs -i rm -rf {}
 
-rm -rf package/emortal/default-settings
-svn co https://github.com/Lienol/openwrt/trunk/package/default-settings package/emortal/default-settings
-mv -f "${Home}"/build/common/zzz-default-settings package/emortal/default-settings/files/zzz-default-settings
-
-mv -f "${Home}"/build/common/Convert.sh "${Home}"
-bash ./Convert.sh
-
-sed -i "/exit 0/i\sed -i '/DISTRIB_REVISION/d' /etc/openwrt_release" "${ZZZ}"
 sed -i "/exit 0/i\chmod +x /etc/webweb.sh && source /etc/webweb.sh > /dev/null 2>&1" package/base-files/files/etc/rc.local
 }
 
@@ -85,6 +77,31 @@ cp -Rf openwrt-package/* "${Home}" && rm -rf "${Home}"/openwrt-package
 if [[ ${REGULAR_UPDATE} == "true" ]]; then
 	git clone https://github.com/281677160/luci-app-autoupdate feeds/luci/applications/luci-app-autoupdate
 	cp -Rf "${PATH1}"/AutoUpdate.sh package/base-files/files/bin
+fi
+if [[ "${REPO_BRANCH}" == "master" ]]; then
+	cp -Rf "${Home}"/build/common/LEDE/files "${Home}"
+	cp -Rf "${Home}"/build/common/LEDE/diy/* "${Home}"
+	cp -Rf "${Home}"/build/common/LEDE/patches/* "${PATH1}/patches"
+elif [[ "${REPO_BRANCH}" == "19.07" ]]; then
+	cp -Rf "${Home}"/build/common/LIENOL/files "${Home}"
+	cp -Rf "${Home}"/build/common/LIENOL/diy/* "${Home}"
+	cp -Rf "${Home}"/build/common/LIENOL/patches/* "${PATH1}/patches"
+elif [[ "${REPO_BRANCH}" == "openwrt-21.02" ]]; then
+	cp -Rf "${Home}"/build/common/MORTAL/files "${Home}"
+	cp -Rf "${Home}"/build/common/MORTAL/diy/* "${Home}"
+	cp -Rf "${Home}"/build/common/MORTAL/patches/* "${PATH1}/patches"
+	chmod -R 777 ${Home}/build/common/Convert
+	cp -Rf ${Home}/build/common/Convert/* "${Home}"
+	/bin/bash Convert.sh
+fi
+if [ -n "$(ls -A "${PATH1}/diy" 2>/dev/null)" ]; then
+	cp -Rf "${PATH1}"/diy/* "${Home}"
+fi
+if [ -n "$(ls -A "${PATH1}/files" 2>/dev/null)" ]; then
+	cp -Rf "${PATH1}/files" "${Home}" && chmod -R +x ${Home}/files
+fi
+if [ -n "$(ls -A "${PATH1}/patches" 2>/dev/null)" ]; then
+	find "${PATH1}/patches" -type f -name '*.patch' -print0 | sort -z | xargs -I % -t -0 -n 1 sh -c "cat '%'  | patch -d './' -p1 --forward --no-backup-if-mismatch"
 fi
 }
 
@@ -231,8 +248,6 @@ Diy_chuli() {
 if [[ "${TARGET_PROFILE}" == "x86-64" ]]; then
 	cp -Rf "${Home}"/build/common/Custom/DRM-I915 target/linux/x86/DRM-I915
 	for X in $(ls -1 target/linux/x86 | grep "config-"); do echo -e "\n$(cat target/linux/x86/DRM-I915)" >> target/linux/x86/${X}; done
-elif [[ "${TARGET_PROFILE}" == "d-team_newifi-d2" ]]; then
-	cp -Rf "${Home}"/build/common/Custom/mac80211.sh "${Home}"/package/kernel/mac80211/files/lib/wifi/mac80211.sh
 fi
 grep -i CONFIG_PACKAGE_luci-app .config | grep  -v \# > Plug-in
 grep -i CONFIG_PACKAGE_luci-theme .config | grep  -v \# >> Plug-in
@@ -273,7 +288,8 @@ GONGGAO() {
 Diy_gonggao() {
 GONGGAO z "《Lede_source文件，Luci版本为18.06，内核版本为5.10》"
 GONGGAO g "《Lienol_source文件，Luci版本为19.07，内核版本为4.14》"
-GONGGAO z "《openwrt_amlogic文件，编译N1和晶晨系列盒子专用，Luci版本为18.06，内核版本为5.10》"
+GONGGAO g "《Mortal_source文件，Luci版本为21.02，内核版本为5.4》"
+GONGGAO z "《openwrt_amlogic文件，编译N1和晶晨系列盒子专用，Luci版本为18.06，内核版本为5.4》"
 GONGGAO y "第一次用我仓库的，请不要拉取任何插件，先SSH进入固件配置那里看过我脚本实在是没有你要的插件才再拉取"
 GONGGAO y "拉取插件应该单独拉取某一个你需要的插件，别一下子就拉取别人一个插件包，这样容易增加编译失败概率"
 GONGGAO r "《如果编译脚本在这里就出现错误的话，意思就是不得不更新脚本了，怎么更新我会在这里写明》"
@@ -312,13 +328,14 @@ TIME b "编译源码: ${CODE}"
 TIME b "源码链接: ${REPO_URL}"
 TIME b "源码分支: ${REPO_BRANCH}"
 TIME b "源码作者: ${ZUOZHE}"
+TIME b "Luci版本: ${OpenWrt_name}"
+TIME b "默认内核: ${KERNEL_PATCHVER}"
 [[ "${Modelfile}" == "openwrt_amlogic" ]] && {
 	TIME b "编译机型: ${TARGET_model}"
 	TIME b "打包内核: ${TARGET_kernel}"
 } || {
 	TIME b "编译机型: ${TARGET_PROFILE}"
 }
-TIME b "内核版本: ${KERNEL_PATCHVER}"
 TIME b "固件作者: ${Author}"
 TIME b "仓库地址: ${Github}"
 TIME b "启动编号: #${Run_number}（${CangKu}仓库第${Run_number}次启动[${Run_workflow}]工作流程）"
@@ -365,6 +382,9 @@ if [[ ${SSH_ACTIONS} == "true" ]]; then
 else
 	TIME r "SSH远程连接: 关闭"
 fi
+if [[ ${BY_INFORMATION} == "true" ]]; then
+	TIME y "编译信息显示: 开启"
+fi
 if [[ ${SSHYC} == "true" ]]; then
 	TIME y "SSH远程连接临时开关: 开启"
 fi
@@ -394,8 +414,6 @@ if [[ ${REGULAR_UPDATE} == "true" ]]; then
 		TIME g "《编译成功，会自动把固件发布到指定地址，然后才会生成云端路径》"
 		TIME g "《普通的那个发布固件跟云端的发布路径是两码事，如果你不需要普通发布的可以不用打开发布功能》"
 		TIME g "《请把“REPO_TOKEN”密匙设置好,没设置好密匙不能发布就生成不了云端地址》"
-		TIME g "《只支持已自动适配固件名字跟后缀机型（x86-64、phicomm_k2p、phicomm-k3、newifi-d2），其他机型请自行适配》"
-		TIME g "《x86设备需要适配传统引导的固件格式名字和UEFI引导的固件格式名字，其他设备只需要设置对应安装格式的固件名字就可以了》"
 		echo
 	}
 else
@@ -411,6 +429,8 @@ echo
 TIME z "  在此系统上使用核心数为[ ${CPUCORES} ],线程数为[ $(nproc) ]"
 echo
 TIME z "  经过几次测试,随机分配到E5系列CPU编译是最慢的,8171M的CPU快很多，8272CL的又比8171M快一丢丢！"
+echo
+TIME z "  如果你编译的插件较多，而你又分配到E5系列CPU的话，你可以考虑关闭了重新再来的！"
 echo
 TIME z "  下面将使用[ $(nproc)线程 ]编译固件"
 if [ -n "$(ls -A "${Home}/EXT4" 2>/dev/null)" ]; then
