@@ -231,7 +231,6 @@ jobs:
           # find -name "*Image*" | xargs -i mv -f {} 
           # find -name "*.vmdk*" | xargs -i mv -f {} 
           rm -rf feeds.buildinfo
-          rm -rf openwrt-x86-64-generic-kernel.bin
           rm -rf openwrt-x86-64-generic-squashfs-combined-efi.vmdk
           rm -rf openwrt-x86-64-generic-squashfs-combined.vmdk
           rm -rf openwrt-x86-64-generic.manifest
