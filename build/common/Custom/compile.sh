@@ -49,13 +49,14 @@ XTbit=`getconf LONG_BIT`
 	sleep 2s
 	sudo apt-get update -y
 	sudo apt-get full-upgrade -y
-	sudo apt-get install -y build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch python2.7 unzip zlib1g-dev lib32gcc1 libc6-dev-i386 lib32stdc++6 subversion flex uglifyjs gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler g++-multilib antlr3 gperf wget curl swig rsync
+	sudo apt-get install -y build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch python2.7 unzip zlib1g-dev lib32gcc1 libc6-dev-i386 lib32stdc++6 subversion flex uglifyjs gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler libpcap0.8-dev g++-multilib antlr3 gperf wget curl swig rsync
 	[[ $? -ne 0 ]] && {
 		clear
 		echo
 		TIME r "环境部署失败，请检测网络或更换节点再尝试!"
 		exit 1
 	} || {
+	sudo apt-get autoremove --purge
 	sudo apt-get clean
 	sudo timedatectl set-timezone Asia/Shanghai
 	echo "compile" > .compile
@@ -70,6 +71,10 @@ if [[ -n "$(ls -A "openwrt/.bf_config" 2>/dev/null)" ]]; then
 		firmware="Lienol_source"
 		Core=".Lienol_core"
 		source openwrt/.Lienol_core
+	elif [[ -n "$(ls -A "openwrt/.Mortal_core" 2>/dev/null)" ]]; then
+		firmware="Mortal_source"
+		Core=".Mortal_core"
+		source openwrt/.Mortal_core
 	elif [[ -n "$(ls -A "openwrt/.amlogic_core" 2>/dev/null)" ]]; then
 		firmware="openwrt_amlogic"
 		Core=".amlogic_core"
@@ -149,36 +154,43 @@ fi
 	echo
 	echo
 	echo
-	TIME l " 1. Lede_5.10内核版本"
+	TIME l " 1. Lede_5.10内核,LUCI 18.06版本"
 	echo
-	TIME l " 2. Lienol_4.14内核版本"
+	TIME l " 2. Lienol_4.14内核,LUCI 19.07版本"
 	echo
-	TIME l " 3. N1和晶晨系列CPU专用"
+	TIME l " 3. Immortalwrt_5.4内核,LUCI 21.02版本"
 	echo
-	TIME l " 4. 退出编译程序"
+	TIME l " 4. N1和晶晨系列CPU盒子专用"
+	echo
+	TIME l " 5. 退出编译程序"
 	echo
 	echo
 	echo
 	while :; do
-	TIME g "请选择编译源码,输入[ 1、2、3、4 ]然后回车确认您的选择！"
+	TIME g "请选择编译源码,输入[ 1、2、3、4、5 ]然后回车确认您的选择！"
 	read -p " 输入您的选择： " CHOOSE
 	case $CHOOSE in
 		1)
 			firmware="Lede_source"
-			TIME y "您选择了：$firmware源码"
+			TIME y "您选择了：Lede_5.10内核,LUCI 18.06版本"
 		break
 		;;
 		2)
 			firmware="Lienol_source"
-			TIME y "您选择了：$firmware源码"
+			TIME y "您选择了：Lienol_4.14内核,LUCI 19.07版本"
 		break
 		;;
 		3)
-			firmware="openwrt_amlogic"
-			TIME y "您选择了：N1和晶晨系列CPU专用"
+			firmware="Mortal_source"
+			TIME y "您选择了：Immortalwrt_5.4内核,LUCI 21.02版本"
 		break
 		;;
 		4)
+			firmware="openwrt_amlogic"
+			TIME y "您选择了：N1和晶晨系列CPU盒子专用"
+		break
+		;;
+		5)
 			rm -rf compile.sh
 			TIME r "您选择了退出编译程序"
 			exit 0
@@ -265,9 +277,9 @@ if [[ $firmware == "Lede_source" ]]; then
 	echo -e "\nGit=$Github" >> openwrt/.Lede_core
 elif [[ $firmware == "Lienol_source" ]]; then
 	[[ -d openwrt ]] && {
-		rm -rf openwrtl && git clone -b 19.07 https://github.com/Lienol/openwrt openwrtl
+		rm -rf openwrtl && git clone -b 19.07 --single-branch https://github.com/Lienol/openwrt openwrtl
 	} || {
-		git clone -b 19.07 https://github.com/Lienol/openwrt openwrt
+		git clone -b 19.07 --single-branch https://github.com/Lienol/openwrt openwrt
 	}
 	[[ $? -ne 0 ]] && {
 		TIME r "源码下载失败，请检测网络或更换节点再尝试!"
@@ -281,6 +293,24 @@ elif [[ $firmware == "Lienol_source" ]]; then
 	OpenWrt_name="19.07"
 	echo -e "\nipdz=$ip" > openwrt/.Lienol_core
 	echo -e "\nGit=$Github" >> openwrt/.Lienol_core
+elif [[ $firmware == "Mortal_source" ]]; then
+	[[ -d openwrt ]] && {
+		rm -rf openwrtl && git clone -b openwrt-21.02 --single-branch https://github.com/immortalwrt/immortalwrt openwrtl
+	} || {
+		git clone -b openwrt-21.02 --single-branch https://github.com/immortalwrt/immortalwrt openwrt
+	}
+	[[ $? -ne 0 ]] && {
+		TIME r "源码下载失败，请检测网络或更换节点再尝试!"
+		rm -rf openwrtl
+		echo
+	 	exit 1
+	} || {
+	[[ -d openwrtl ]] && rm -rf openwrt && mv openwrtl openwrt
+	}
+	ZZZ="package/emortal/default-settings/files/zzz-default-settings"
+	OpenWrt_name="21.02"
+	echo -e "\nipdz=$ip" > openwrt/.Mortal_core
+	echo -e "\nGit=$Github" >> openwrt/.Mortal_core
 elif [[ $firmware == "openwrt_amlogic" ]]; then
 	[[ -d openwrt ]] && {
 		rm -rf openwrtl && git clone https://github.com/coolsnowwolf/lede openwrtl
